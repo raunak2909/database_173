@@ -46,4 +46,13 @@ class AppDataBase {
     });
 
   }
+
+  Future<List<Map<String, dynamic>>> fetchNotes() async{
+
+    var db = await getDB();
+
+    var data = await db.query("notes");
+
+    return data;
+  }
 }

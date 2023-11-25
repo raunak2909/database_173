@@ -22,8 +22,29 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+late AppDataBase appDB;
+List<Map<String, dynamic>> data = [];
+  @override
+  void initState() {
+    super.initState();
+    appDB = AppDataBase.instance;
+    getAllNotes();
+  }
+
+  void getAllNotes() async{
+    data = await appDB.fetchNotes();
+    setState(() {
+
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +52,18 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Notes'),
       ),
-      body: Container(),
+      body: ListView.builder(
+        itemCount: data.length,
+          itemBuilder: (_, index){
+          return ListTile(
+            title: Text('${data[index]['title']}'),
+            subtitle: Text('${data[index]['desc']}'),
+          );
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          var appDB = AppDataBase.instance;
-
           appDB.addNote("New Note", "Implement DB in flutter app");
+          getAllNotes();
         },
         child: Icon(Icons.add),
       ),
