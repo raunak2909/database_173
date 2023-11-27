@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:database_173/app_db.dart';
+import 'package:database_173/model/note_model.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -30,8 +33,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-late AppDataBase appDB;
-List<Map<String, dynamic>> data = [];
+  late AppDataBase appDB;
+  List<NoteModel> data = [];
+
   @override
   void initState() {
     super.initState();
@@ -39,11 +43,9 @@ List<Map<String, dynamic>> data = [];
     getAllNotes();
   }
 
-  void getAllNotes() async{
+  void getAllNotes() async {
     data = await appDB.fetchNotes();
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -52,17 +54,24 @@ List<Map<String, dynamic>> data = [];
       appBar: AppBar(
         title: Text('Notes'),
       ),
-      body: ListView.builder(
-        itemCount: data.length,
-          itemBuilder: (_, index){
-          return ListTile(
-            title: Text('${data[index]['title']}'),
-            subtitle: Text('${data[index]['desc']}'),
-          );
-      }),
+      body: data.isNotEmpty ? ListView.builder(
+          itemCount: data.length,
+          itemBuilder: (_, index) {
+
+            var currData = data[index];
+
+            return ListTile(
+              leading: Text('${currData.note_id}'),
+              title: Text(currData.note_title),
+              subtitle: Text(currData.note_desc),
+            );
+          }) : Container(),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
-          appDB.addNote("New Note", "Implement DB in flutter app");
+        onPressed: () {
+          appDB.addNote(NoteModel(
+              note_id: 0,
+              note_title: "New Note",
+              note_desc: "Implement DB in flutter app"));
           getAllNotes();
         },
         child: Icon(Icons.add),
