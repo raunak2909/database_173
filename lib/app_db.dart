@@ -72,9 +72,16 @@ class AppDataBase {
     return arrNotes;
   }
 
-  /*void deleteNote() async{
+  void updateNote(NoteModel updatedNote) async{
     var db = await getDB();
 
-    db.delete(NOTE_TABLE, where:  "");
-  }*/
+    //db.update(NOTE_TABLE, updatedNote.toMap(), where: "$COLUMN_NOTE_ID = ${updatedNote.note_id}");
+    db.update(NOTE_TABLE, updatedNote.toMap(), where: "$COLUMN_NOTE_ID = ?", whereArgs: ['${updatedNote.note_id}']);
+  }
+
+  void deleteNote(int id) async{
+    var db = await getDB();
+
+    db.delete(NOTE_TABLE, where: "$COLUMN_NOTE_ID = $id");
+  }
 }

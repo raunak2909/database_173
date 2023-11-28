@@ -35,6 +35,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late AppDataBase appDB;
   List<NoteModel> data = [];
+  var titleController = TextEditingController();
+  var descController = TextEditingController();
 
   @override
   void initState() {
@@ -45,6 +47,7 @@ class _HomePageState extends State<HomePage> {
 
   void getAllNotes() async {
     data = await appDB.fetchNotes();
+    data = data.reversed.toList();
     setState(() {});
   }
 
@@ -54,28 +57,145 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Notes'),
       ),
-      body: data.isNotEmpty ? ListView.builder(
-          itemCount: data.length,
-          itemBuilder: (_, index) {
+      body: data.isNotEmpty
+          ? ListView.builder(
+              itemCount: data.length,
+              itemBuilder: (_, index) {
+                var currData = data[index];
 
-            var currData = data[index];
-
-            return ListTile(
-              leading: Text('${currData.note_id}'),
-              title: Text(currData.note_title),
-              subtitle: Text(currData.note_desc),
-            );
-          }) : Container(),
+                return ListTile(
+                  leading: Text('${index+1}'),
+                  title: Text(currData.note_title),
+                  subtitle: Text(currData.note_desc),
+                  trailing: SizedBox(
+                    width: 100,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        InkWell(
+                            onTap: () {
+                              ///update the data
+                              callMyBottomSheet(
+                                  isUpdate: true,
+                                  noteId: currData.note_id,
+                                  title: currData.note_title,
+                                  desc: currData.note_desc);
+                            },
+                            child: Icon(
+                              Icons.edit,
+                              color: Colors.blue,
+                            )),
+                        InkWell(
+                            onTap: () {
+                              ///delete the data
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: Text("Delete?"),
+                                      content: Text(
+                                          "Are you sure want to delete this Note?"),
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () {
+                                              /// delete operation here..
+                                              appDB.deleteNote(currData.note_id);
+                                              getAllNotes();
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('Yes')),
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('No')),
+                                      ],
+                                    );
+                                  });
+                            },
+                            child: Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ))
+                      ],
+                    ),
+                  ),
+                );
+              })
+          : Container(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          appDB.addNote(NoteModel(
-              note_id: 0,
-              note_title: "New Note",
-              note_desc: "Implement DB in flutter app"));
-          getAllNotes();
+          callMyBottomSheet();
         },
         child: Icon(Icons.add),
       ),
     );
+  }
+
+  void callMyBottomSheet(
+      {bool isUpdate = false,
+      int noteId = 0,
+      String title = "",
+      String desc = ""}) {
+    titleController.text = title;
+    descController.text = desc;
+    /*else {
+      titleController.text = "";
+      descController.text = "";
+    }*/
+
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Container(
+            height: 550,
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(isUpdate ? 'Update Note' : 'Add Note'),
+                TextField(
+                  controller: titleController,
+                ),
+                TextField(
+                  controller: descController,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                        onPressed: () {
+                          if (titleController.text.isNotEmpty &&
+                              descController.text.isNotEmpty) {
+                            if (isUpdate) {
+                              ///update note here
+                              appDB.updateNote(NoteModel(
+                                  note_id: noteId,
+                                  note_title: titleController.text.toString(),
+                                  note_desc: descController.text.toString()));
+                            } else {
+                              ///add note here
+                              appDB.addNote(NoteModel(
+                                  note_id: 0,
+                                  note_title: titleController.text.toString(),
+                                  note_desc: descController.text.toString()));
+                            }
+                            getAllNotes();
+
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: Text(isUpdate ? 'Update' : 'Add')),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('Cancel'))
+                  ],
+                )
+              ],
+            ),
+          );
+        });
   }
 }
