@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:database_173/app_db.dart';
 import 'package:database_173/model/note_model.dart';
+import 'package:database_173/user_onboarding/sign_up_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: HomePage(),
+      home: SignUpPage(),
     );
   }
 }
@@ -170,12 +171,14 @@ class _HomePageState extends State<HomePage> {
                             if (isUpdate) {
                               ///update note here
                               appDB.updateNote(NoteModel(
+                                user_id: 1,
                                   note_id: noteId,
                                   note_title: titleController.text.toString(),
                                   note_desc: descController.text.toString()));
                             } else {
                               ///add note here
                               appDB.addNote(NoteModel(
+                                user_id: 1,
                                   note_id: 0,
                                   note_title: titleController.text.toString(),
                                   note_desc: descController.text.toString()));
