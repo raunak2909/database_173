@@ -2,6 +2,7 @@ import 'package:database_173/model/note_model.dart';
 import 'package:database_173/model/user_model.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDataBase {
@@ -11,6 +12,9 @@ class AppDataBase {
   static final AppDataBase instance = AppDataBase._();
 
   Database? myDB;
+
+  ///login pref key
+  static final String LOGIN_UID = "uid";
 
   ///table
   static final String NOTE_TABLE = "notes";
@@ -59,11 +63,11 @@ class AppDataBase {
     db.insert(NOTE_TABLE, newNote.toMap());
   }
 
-  Future<List<NoteModel>> fetchNotes() async {
+  Future<List<NoteModel>> fetchNotes(int uid) async {
     var db = await getDB();
     List<NoteModel> arrNotes = [];
 
-    var data = await db.query(NOTE_TABLE);
+    var data = await db.query(NOTE_TABLE, where: "$COLUMN_USER_ID = ?", whereArgs: ['$uid']);
 
     for (Map<String, dynamic> eachMap in data) {
       var noteModel = NoteModel.fromMap(eachMap);
@@ -116,6 +120,11 @@ class AppDataBase {
     var db = await getDB();
 
     var data = await db.query(USER_TABLE, where: "$COLUMN_USER_EMAIL = ? and $COLUMN_USER_PASS = ?", whereArgs: [email, pass]);
+
+    if(data.isNotEmpty){
+      var prefs = await SharedPreferences.getInstance();
+      prefs.setInt(LOGIN_UID, UserModel.fromMap(data[0]).user_id);
+    }
 
     return data.isNotEmpty;
   }

@@ -1,5 +1,6 @@
 import 'package:database_173/app_db.dart';
 import 'package:database_173/model/user_model.dart';
+import 'package:database_173/user_onboarding/login_page.dart';
 import 'package:flutter/material.dart';
 
 class SignUpPage extends StatelessWidget {
@@ -53,13 +54,18 @@ class SignUpPage extends StatelessWidget {
 
               if(check){
                 msg = "Account created successfully!!";
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginPage(),));
               } else {
                 msg = "Can't create account as email already exists!!";
               }
 
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
             }
-          }, child: Text('Sign-Up'))
+          }, child: Text('Sign-Up')),
+
+          TextButton(onPressed: (){
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginPage(),));
+          }, child: Text('Already have an Account, Login now'))
         ],
       ),
     );

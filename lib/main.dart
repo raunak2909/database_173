@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:database_173/app_db.dart';
 import 'package:database_173/model/note_model.dart';
+import 'package:database_173/user_onboarding/login_page.dart';
 import 'package:database_173/user_onboarding/sign_up_page.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +23,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: SignUpPage(),
+      home: LoginPage(),
     );
   }
 }
@@ -35,6 +37,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late AppDataBase appDB;
+  int? uid = 0;
   List<NoteModel> data = [];
   var titleController = TextEditingController();
   var descController = TextEditingController();
@@ -43,11 +46,18 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     appDB = AppDataBase.instance;
+    getUID();
+
+  }
+
+  void getUID() async{
+    var prefs = await SharedPreferences.getInstance();
+    uid = prefs.getInt(AppDataBase.LOGIN_UID);
     getAllNotes();
   }
 
   void getAllNotes() async {
-    data = await appDB.fetchNotes();
+    data = await appDB.fetchNotes(uid!);
     data = data.reversed.toList();
     setState(() {});
   }
@@ -78,6 +88,7 @@ class _HomePageState extends State<HomePage> {
                               ///update the data
                               callMyBottomSheet(
                                   isUpdate: true,
+                                  uId: currData.user_id,
                                   noteId: currData.note_id,
                                   title: currData.note_title,
                                   desc: currData.note_desc);
@@ -135,6 +146,7 @@ class _HomePageState extends State<HomePage> {
 
   void callMyBottomSheet(
       {bool isUpdate = false,
+        int uId = 0,
       int noteId = 0,
       String title = "",
       String desc = ""}) {
@@ -171,14 +183,14 @@ class _HomePageState extends State<HomePage> {
                             if (isUpdate) {
                               ///update note here
                               appDB.updateNote(NoteModel(
-                                user_id: 1,
+                                  user_id: uId,
                                   note_id: noteId,
                                   note_title: titleController.text.toString(),
                                   note_desc: descController.text.toString()));
                             } else {
                               ///add note here
                               appDB.addNote(NoteModel(
-                                user_id: 1,
+                                  user_id: uid!,
                                   note_id: 0,
                                   note_title: titleController.text.toString(),
                                   note_desc: descController.text.toString()));
