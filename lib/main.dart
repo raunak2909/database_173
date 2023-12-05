@@ -1,14 +1,20 @@
 import 'dart:io';
 
+import 'package:database_173/add_note_page.dart';
 import 'package:database_173/app_db.dart';
 import 'package:database_173/model/note_model.dart';
+import 'package:database_173/note_provider.dart';
 import 'package:database_173/user_onboarding/login_page.dart';
 import 'package:database_173/user_onboarding/sign_up_page.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+    create: (context) => NoteProvider(db: AppDataBase.instance),
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -36,31 +42,33 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late AppDataBase appDB;
+  /*late AppDataBase appDB;
   int? uid = 0;
-  List<NoteModel> data = [];
+  List<NoteModel> data = [];*/
   var titleController = TextEditingController();
   var descController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    appDB = AppDataBase.instance;
-    getUID();
+    ///to get all notes when app opens
+    context.read<NoteProvider>().getAllNotes();
 
+    /*appDB = AppDataBase.instance;
+    getUID();*/
   }
 
-  void getUID() async{
+  /*void getUID() async {
     var prefs = await SharedPreferences.getInstance();
     uid = prefs.getInt(AppDataBase.LOGIN_UID);
     getAllNotes();
-  }
+  }*/
 
-  void getAllNotes() async {
+  /*void getAllNotes() async {
     data = await appDB.fetchNotes(uid!);
     data = data.reversed.toList();
     setState(() {});
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -68,14 +76,17 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Notes'),
       ),
-      body: data.isNotEmpty
-          ? ListView.builder(
-              itemCount: data.length,
+      body: Consumer<NoteProvider>(
+        builder: (ctx, provider, child){
+          var notes = provider.getNotes();
+          return notes.isNotEmpty
+              ? ListView.builder(
+              itemCount: notes.length,
               itemBuilder: (_, index) {
-                var currData = data[index];
+                var currData = notes[index];
 
                 return ListTile(
-                  leading: Text('${index+1}'),
+                  leading: Text('${index + 1}'),
                   title: Text(currData.note_title),
                   subtitle: Text(currData.note_desc),
                   trailing: SizedBox(
@@ -86,12 +97,12 @@ class _HomePageState extends State<HomePage> {
                         InkWell(
                             onTap: () {
                               ///update the data
-                              callMyBottomSheet(
+                              /*callMyBottomSheet(
                                   isUpdate: true,
                                   uId: currData.user_id,
                                   noteId: currData.note_id,
                                   title: currData.note_title,
-                                  desc: currData.note_desc);
+                                  desc: currData.note_desc);*/
                             },
                             child: Icon(
                               Icons.edit,
@@ -111,8 +122,8 @@ class _HomePageState extends State<HomePage> {
                                         TextButton(
                                             onPressed: () {
                                               /// delete operation here..
-                                              appDB.deleteNote(currData.note_id);
-                                              getAllNotes();
+                                              /*appDB
+                                                  .deleteNote(currData.note_id);*/
                                               Navigator.pop(context);
                                             },
                                             child: Text('Yes')),
@@ -134,28 +145,37 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               })
-          : Container(),
+              : Container();
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          callMyBottomSheet();
+          //callMyBottomSheet();
+          //for adding note
+
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddNotePage(),
+              ));
         },
         child: Icon(Icons.add),
       ),
     );
   }
 
-  void callMyBottomSheet(
+  /*void callMyBottomSheet(
       {bool isUpdate = false,
-        int uId = 0,
+      int uId = 0,
       int noteId = 0,
       String title = "",
       String desc = ""}) {
     titleController.text = title;
     descController.text = desc;
-    /*else {
+    *//*else {
       titleController.text = "";
       descController.text = "";
-    }*/
+    }*//*
 
     showModalBottomSheet(
         context: context,
@@ -212,5 +232,5 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         });
-  }
+  }*/
 }

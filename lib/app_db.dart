@@ -57,13 +57,24 @@ class AppDataBase {
     }
   }
 
-  void addNote(NoteModel newNote) async {
+  Future<void> addNote(NoteModel newNote) async {
     var db = await getDB();
+    var uid = await getUID();
+    newNote.user_id = uid;
 
     db.insert(NOTE_TABLE, newNote.toMap());
   }
 
-  Future<List<NoteModel>> fetchNotes(int uid) async {
+  Future<int> getUID() async{
+    var prefs = await SharedPreferences.getInstance();
+    var uid = prefs.getInt(AppDataBase.LOGIN_UID);
+    return uid ?? 0;
+  }
+
+  Future<List<NoteModel>> fetchNotes() async {
+
+    var uid = await getUID();
+
     var db = await getDB();
     List<NoteModel> arrNotes = [];
 
