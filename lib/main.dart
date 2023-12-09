@@ -2,17 +2,20 @@ import 'dart:io';
 
 import 'package:database_173/add_note_page.dart';
 import 'package:database_173/app_db.dart';
+import 'package:database_173/cubit/note_cubit.dart';
+import 'package:database_173/cubit/note_state.dart';
 import 'package:database_173/model/note_model.dart';
 import 'package:database_173/note_provider.dart';
 import 'package:database_173/user_onboarding/login_page.dart';
 import 'package:database_173/user_onboarding/sign_up_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(ChangeNotifierProvider(
-    create: (context) => NoteProvider(db: AppDataBase.instance),
+  runApp(BlocProvider<NoteCubit>(
+    create: (context) => NoteCubit(appDb: AppDataBase.instance),
     child: const MyApp(),
   ));
 }
@@ -52,7 +55,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     ///to get all notes when app opens
-    context.read<NoteProvider>().getAllNotes();
+
 
     /*appDB = AppDataBase.instance;
     getUID();*/
@@ -72,11 +75,98 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    context.read<NoteCubit>().getAllNotes();
+    print("build called!!");
     return Scaffold(
       appBar: AppBar(
         title: Text('Notes'),
       ),
-      body: Consumer<NoteProvider>(
+      body: BlocBuilder<NoteCubit, NoteState>(
+        builder: (_, state){
+          if(state is LoadingState){
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if(state is ErrorState){
+            return Center(child: Text('${state.errorMsg}'),);
+          }
+
+          if(state is LoadedState){
+            return state.mNotes.isNotEmpty
+                ? ListView.builder(
+                itemCount: state.mNotes.length,
+                itemBuilder: (_, index) {
+                  var currData = state.mNotes[index];
+
+                  return ListTile(
+                    leading: Text('${index + 1}'),
+                    title: Text(currData.note_title),
+                    subtitle: Text(currData.note_desc),
+                    trailing: SizedBox(
+                      width: 100,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          InkWell(
+                              onTap: () {
+                                ///update the data
+                                /*callMyBottomSheet(
+                                  isUpdate: true,
+                                  uId: currData.user_id,
+                                  noteId: currData.note_id,
+                                  title: currData.note_title,
+                                  desc: currData.note_desc);*/
+                              },
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.blue,
+                              )),
+                          InkWell(
+                              onTap: () {
+                                ///delete the data
+                                showDialog(
+                                    context: context,
+                                    builder: (_) {
+                                      return AlertDialog(
+                                        title: Text("Delete?"),
+                                        content: Text(
+                                            "Are you sure want to delete this Note?"),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () {
+                                                /// delete operation here..
+                                                context.read<NoteCubit>().deleteNote(currData.note_id);
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text('Yes')),
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text('No')),
+                                        ],
+                                      );
+                                    });
+                              },
+                              child: Icon(
+                                Icons.delete,
+                                color: Colors.red,
+                              ))
+                        ],
+                      ),
+                    ),
+                  );
+                })
+                : Container();
+          }
+          
+          return Container();
+        },
+      )
+
+      /*Consumer<NoteProvider>(
         builder: (ctx, provider, child){
           var notes = provider.getNotes();
           return notes.isNotEmpty
@@ -97,12 +187,12 @@ class _HomePageState extends State<HomePage> {
                         InkWell(
                             onTap: () {
                               ///update the data
-                              /*callMyBottomSheet(
+                              *//*callMyBottomSheet(
                                   isUpdate: true,
                                   uId: currData.user_id,
                                   noteId: currData.note_id,
                                   title: currData.note_title,
-                                  desc: currData.note_desc);*/
+                                  desc: currData.note_desc);*//*
                             },
                             child: Icon(
                               Icons.edit,
@@ -122,8 +212,8 @@ class _HomePageState extends State<HomePage> {
                                         TextButton(
                                             onPressed: () {
                                               /// delete operation here..
-                                              /*appDB
-                                                  .deleteNote(currData.note_id);*/
+                                              *//*appDB
+                                                  .deleteNote(currData.note_id);*//*
                                               Navigator.pop(context);
                                             },
                                             child: Text('Yes')),
@@ -147,7 +237,7 @@ class _HomePageState extends State<HomePage> {
               })
               : Container();
         },
-      ),
+      ),*/,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           //callMyBottomSheet();

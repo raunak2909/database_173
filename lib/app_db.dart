@@ -57,12 +57,14 @@ class AppDataBase {
     }
   }
 
-  Future<void> addNote(NoteModel newNote) async {
+  Future<bool> addNote(NoteModel newNote) async {
     var db = await getDB();
     var uid = await getUID();
     newNote.user_id = uid;
 
-    db.insert(NOTE_TABLE, newNote.toMap());
+    var rowEffected = await db.insert(NOTE_TABLE, newNote.toMap());
+
+    return rowEffected>0;
   }
 
   Future<int> getUID() async{
@@ -96,10 +98,11 @@ class AppDataBase {
         where: "$COLUMN_NOTE_ID = ?", whereArgs: ['${updatedNote.note_id}']);
   }
 
-  void deleteNote(int id) async {
+  Future<bool> deleteNote(int id) async {
     var db = await getDB();
 
-    db.delete(NOTE_TABLE, where: "$COLUMN_NOTE_ID = $id");
+    var rowsEffected = await db.delete(NOTE_TABLE, where: "$COLUMN_NOTE_ID = $id");
+    return rowsEffected>0;
   }
 
   ///Queries for USER

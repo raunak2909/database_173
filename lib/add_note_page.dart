@@ -1,4 +1,5 @@
 import 'package:database_173/app_db.dart';
+import 'package:database_173/cubit/note_cubit.dart';
 import 'package:database_173/note_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,8 @@ class AddNotePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //print("build called!!");
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Add Note'),
@@ -34,7 +37,7 @@ class AddNotePage extends StatelessWidget {
                     if (titleController.text.isNotEmpty &&
                         descController.text.isNotEmpty) {
                       ///add note here
-                      context.read<NoteProvider>().addNote(NoteModel(
+                      context.read<NoteCubit>().addNote(NoteModel(
                           user_id: 0,
                           note_id: 0,
                           note_title: titleController.text.toString(),
