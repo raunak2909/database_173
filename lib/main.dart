@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:database_173/add_note_page.dart';
 import 'package:database_173/app_db.dart';
+import 'package:database_173/bloc/notedb_bloc.dart';
 import 'package:database_173/cubit/note_cubit.dart';
 import 'package:database_173/cubit/note_state.dart';
 import 'package:database_173/model/note_model.dart';
@@ -14,8 +15,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(BlocProvider<NoteCubit>(
-    create: (context) => NoteCubit(appDb: AppDataBase.instance),
+  runApp(BlocProvider<NotedbBloc>(
+    create: (context) => NotedbBloc(db: AppDataBase.instance),
     child: const MyApp(),
   ));
 }
@@ -81,24 +82,24 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Notes'),
       ),
-      body: BlocBuilder<NoteCubit, NoteState>(
+      body: BlocBuilder<NotedbBloc, NotedbState>(
         builder: (_, state){
-          if(state is LoadingState){
+          if(state is NotedbLoading){
             return Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          if(state is ErrorState){
+          if(state is NotedbError){
             return Center(child: Text('${state.errorMsg}'),);
           }
 
-          if(state is LoadedState){
-            return state.mNotes.isNotEmpty
+          if(state is NotedbLoaded){
+            return state.allNotes.isNotEmpty
                 ? ListView.builder(
-                itemCount: state.mNotes.length,
+                itemCount: state.allNotes.length,
                 itemBuilder: (_, index) {
-                  var currData = state.mNotes[index];
+                  var currData = state.allNotes[index];
 
                   return ListTile(
                     leading: Text('${index + 1}'),

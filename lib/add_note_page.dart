@@ -1,4 +1,5 @@
 import 'package:database_173/app_db.dart';
+import 'package:database_173/bloc/notedb_bloc.dart';
 import 'package:database_173/cubit/note_cubit.dart';
 import 'package:database_173/note_provider.dart';
 import 'package:flutter/cupertino.dart';
@@ -37,11 +38,12 @@ class AddNotePage extends StatelessWidget {
                     if (titleController.text.isNotEmpty &&
                         descController.text.isNotEmpty) {
                       ///add note here
-                      context.read<NoteCubit>().addNote(NoteModel(
-                          user_id: 0,
-                          note_id: 0,
-                          note_title: titleController.text.toString(),
-                          note_desc: descController.text.toString()));
+                      context.read<NotedbBloc>().add(
+                          AddNoteEvent(newNote: NoteModel(
+                              user_id: 0,
+                              note_id: 0,
+                              note_title: titleController.text.toString(),
+                              note_desc: descController.text.toString())));
 
                       Navigator.pop(context);
 
